@@ -6,7 +6,7 @@ A clean desktop media downloader built with Python, CustomTkinter, yt-dlp, and F
 
 ## Quick Start (How to Run)
 
-### Method 1: Command Line (Recommended)
+### Method 1: Command Line
 
 1. **Clone the repository**:
    ```bash
@@ -14,24 +14,12 @@ A clean desktop media downloader built with Python, CustomTkinter, yt-dlp, and F
    cd <repository-folder>
    ```
 
-2. **Create & activate virtual environment**:
-   - **Windows**:
-     ```cmd
-     python -m venv .venv
-     .venv\Scripts\activate
-     ```
-   - **macOS / Linux**:
-     ```bash
-     python3 -m venv .venv
-     source .venv/bin/activate
-     ```
-
-3. **Install requirements**:
+2. **Install requirements**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Start the application**:
+3. **Start the application**:
    ```bash
    python run.py
    ```
