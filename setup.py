@@ -33,7 +33,6 @@ def setup():
 
     print("\n[2/2] Creating runtime directories...")
     (BASE_DIR / "downloads").mkdir(exist_ok=True)
-    (BASE_DIR / "logs").mkdir(exist_ok=True)
     (BASE_DIR / "assets").mkdir(exist_ok=True)
     print("✓ Runtime directories ready.")
 

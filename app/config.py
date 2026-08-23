@@ -8,9 +8,7 @@ from pathlib import Path
 # Path(__file__).resolve().parent is 'app', parent.parent is project root
 BASE_DIR = Path(__file__).resolve().parent.parent
 DOWNLOADS_DIR = BASE_DIR / "downloads"
-LOGS_DIR = BASE_DIR / "logs"
 ASSETS_DIR = BASE_DIR / "assets"
-LOG_FILE = LOGS_DIR / "app.log"
 
 # Window Geometry
 APP_TITLE = "Media Downloader"
@@ -43,5 +41,4 @@ COLORS = {
 def setup_app_directories():
     """Ensure all required directories exist on application startup."""
     DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)

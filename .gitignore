@@ -14,8 +14,6 @@ env/
 
 # Application runtime files
 *.log
-logs/*
-!logs/.gitkeep
 
 # Downloaded output media
 downloads/

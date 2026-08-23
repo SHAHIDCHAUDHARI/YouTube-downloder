@@ -9,21 +9,19 @@ import customtkinter as ctk
 from app.config import (
     APPEARANCE_MODE,
     COLOR_THEME,
-    LOG_FILE,
     setup_app_directories,
 )
 from app.gui import MediaDownloaderApp
 
 
 def setup_logging():
-    """Configure centralized logging to app.log and stdout."""
+    """Configure console logging to stdout."""
     setup_app_directories()
 
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
-            logging.FileHandler(LOG_FILE, encoding="utf-8"),
             logging.StreamHandler(sys.stdout),
         ],
     )
