@@ -39,6 +39,5 @@ COLORS = {
 }
 
 def setup_app_directories():
-    """Ensure all required directories exist on application startup."""
+    """Ensure required downloads directory exists on application startup."""
     DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
-    ASSETS_DIR.mkdir(parents=True, exist_ok=True)

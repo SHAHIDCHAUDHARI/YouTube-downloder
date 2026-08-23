@@ -1,9 +1,10 @@
 """
-Auto-installer script to install dependencies and set up runtime directories.
-Can be executed via terminal or double-clicked.
+Auto-installer script to clean non-essential GitHub files, set up runtime directories,
+and install dependencies. Can be executed via terminal or double-clicked.
 """
 
 import sys
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -14,27 +15,57 @@ def setup():
     print("==========================================")
     print("      Media Downloader Auto Setup         ")
     print("==========================================")
-    print("\n[1/2] Installing required Python packages...")
 
-    requirements_file = BASE_DIR / "requirements.txt"
-    if not requirements_file.exists():
-        print("Error: requirements.txt not found!")
-        input("\nPress Enter to exit...")
-        sys.exit(1)
+    # Step 1: Clean up extra GitHub files (assets, .gitignore, README.md)
+    print("\n[1/4] Cleaning up extra files...")
+    files_to_remove = [
+        BASE_DIR / ".gitignore",
+        BASE_DIR / "README.md",
+    ]
+    for file_path in files_to_remove:
+        if file_path.exists():
+            try:
+                file_path.unlink()
+            except Exception:
+                pass
 
-    try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", str(requirements_file)])
-        print("✓ Dependencies installed successfully.")
-    except Exception as e:
-        print(f"❌ Error installing dependencies: {e}")
-        input("\nPress Enter to exit...")
-        sys.exit(1)
+    assets_dir = BASE_DIR / "assets"
+    if assets_dir.exists():
+        try:
+            shutil.rmtree(assets_dir, ignore_errors=True)
+        except Exception:
+            pass
+    print("✓ Extra files cleaned up.")
 
-    print("\n[2/2] Creating runtime directories...")
+    # Step 2: Create downloads folder
+    print("\n[2/4] Creating downloads folder...")
     (BASE_DIR / "downloads").mkdir(exist_ok=True)
-    (BASE_DIR / "assets").mkdir(exist_ok=True)
-    print("✓ Runtime directories ready.")
+    print("✓ Downloads folder ready.")
+
+    # Step 3: Download & install dependencies
+    print("\n[3/4] Installing required Python packages...")
+    requirements_file = BASE_DIR / "requirements.txt"
+
+    if requirements_file.exists():
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", str(requirements_file)])
+            print("✓ Dependencies installed successfully.")
+        except Exception as e:
+            print(f"❌ Error installing dependencies: {e}")
+            input("\nPress Enter to exit...")
+            sys.exit(1)
+    else:
+        print("Note: requirements.txt already processed or missing.")
+
+    # Step 4: Remove requirements.txt after successful installation
+    print("\n[4/4] Finalizing setup...")
+    if requirements_file.exists():
+        try:
+            requirements_file.unlink()
+        except Exception:
+            pass
+    print("✓ Setup finalized.")
 
     print("\n==========================================")
     print(" Setup Complete!")
