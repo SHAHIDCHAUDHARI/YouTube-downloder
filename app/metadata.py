@@ -47,11 +47,12 @@ def _format_sort_key(fmt: Dict[str, Any]) -> tuple:
     is_progressive = 1 if (vcodec != "none" and acodec != "none") else 0
     # Preference for mp4 container
     is_mp4 = 1 if ext == "mp4" else 0
-    # Preference for standard H.264 (avc1) or modern compatible codecs
-    is_common_codec = 1 if ("avc" in vcodec or "av01" in vcodec or "vp09" in vcodec) else 0
+    # Preference for standard H.264 (avc1) over AV1/VP9 for universal Windows Media Player compatibility
+    is_h264 = 1 if "avc" in vcodec else 0
+    is_common_codec = 1 if ("av01" in vcodec or "vp09" in vcodec) else 0
     has_explicit_size = 1 if filesize > 0 else 0
 
-    return (is_mp4, is_progressive, has_explicit_size, is_common_codec, filesize or tbr)
+    return (is_mp4, is_progressive, is_h264, has_explicit_size, is_common_codec, filesize or tbr)
 
 
 def _estimate_format_bytes(fmt: Optional[Dict[str, Any]], duration: Optional[int]) -> int:
@@ -109,21 +110,29 @@ def parse_and_normalize_formats(info_dict: Dict[str, Any], has_ffmpeg: bool, dur
 
         # Video format (must have valid height)
         if height and height > 0:
+            width = fmt.get("width") or 0
+            eff_height = max(height, width) if (width > height and width <= 4320) else height
             fps_bucket = 60 if fps >= 45 else 30
-            group_key = (height, fps_bucket)
+            group_key = (eff_height, fps_bucket)
             if group_key not in quality_groups:
                 quality_groups[group_key] = []
             quality_groups[group_key].append(fmt)
 
     options: List[FormatOption] = []
+    seen_labels = set()
 
-    # Sort available (height, fps_bucket) groups descending
+    # Sort available (eff_height, fps_bucket) groups descending
     sorted_keys = sorted(quality_groups.keys(), key=lambda k: (k[0], k[1]), reverse=True)
 
     for group_key in sorted_keys:
         h, fps_b = group_key
         fmts = quality_groups[group_key]
         best_fmt = max(fmts, key=_format_sort_key)
+
+        label = _get_resolution_label(h, best_fmt.get("fps") or float(fps_b))
+        if label in seen_labels:
+            continue
+        seen_labels.add(label)
 
         format_id = str(best_fmt.get("format_id", ""))
         ext = best_fmt.get("ext", "mp4").lower()
@@ -132,7 +141,6 @@ def parse_and_normalize_formats(info_dict: Dict[str, Any], has_ffmpeg: bool, dur
         vcodec = best_fmt.get("vcodec") or ""
         acodec = best_fmt.get("acodec") or ""
 
-        label = _get_resolution_label(h, fps)
         is_progressive = (acodec != "none")
         requires_ffmpeg = not is_progressive
 
