@@ -94,9 +94,16 @@ def parse_and_normalize_formats(info_dict: Dict[str, Any], has_ffmpeg: bool, dur
         if not format_id or "storyboard" in format_id or (vcodec == "none" and acodec == "none"):
             continue
 
-        # Audio-only format tracking
+        # Audio-only format tracking (prefer m4a/aac for MP4 container compatibility)
         if vcodec == "none" and acodec != "none":
-            if not best_audio_format or (fmt.get("tbr") or 0) > (best_audio_format.get("tbr") or 0):
+            is_m4a = 1 if (fmt.get("ext") == "m4a" or "mp4a" in acodec.lower() or "aac" in acodec.lower()) else 0
+            best_m4a = 1 if (best_audio_format and (best_audio_format.get("ext") == "m4a" or "mp4a" in (best_audio_format.get("acodec") or "").lower() or "aac" in (best_audio_format.get("acodec") or "").lower())) else 0
+
+            if not best_audio_format:
+                best_audio_format = fmt
+            elif is_m4a > best_m4a:
+                best_audio_format = fmt
+            elif is_m4a == best_m4a and (fmt.get("tbr") or 0) > (best_audio_format.get("tbr") or 0):
                 best_audio_format = fmt
             continue
 

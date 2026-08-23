@@ -46,6 +46,9 @@ If you downloaded the project ZIP file or prefer not to use terminal commands:
 - **Responsive Interface**: Scrollable main window ensures controls remain accessible at all window sizes.
 - **Local Downloads Folder**: Downloads are automatically saved to `downloads/` with an **Open Folder** button.
 
+> **Note on Media Player Compatibility:**
+> Some default system media players (such as legacy Windows Media Player) may struggle to render `.mp4` containers that use WebM/Opus audio codecs. This application automatically pairs video streams with standard AAC (`.m4a`) audio to ensure universal video and audio playback across Windows Media Player, QuickTime, mobile devices, and TVs. Third-party media players like **VLC Media Player** play all formats seamlessly.
+
 ---
 
 ## Screenshots
