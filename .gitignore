@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# IDE & Editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Application runtime files
+*.log
+logs/*
+!logs/.gitkeep
+
+downloads/*
+!downloads/.gitkeep
+
+# Optional local FFmpeg binaries
+ffmpeg/
+ffmpeg_bin/
+
+# Operating system files
+.DS_Store
+Thumbs.db
