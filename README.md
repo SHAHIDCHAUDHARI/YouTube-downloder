@@ -50,16 +50,12 @@ If you downloaded the project ZIP file or prefer not to use terminal commands:
 
 ## Screenshots
 
-![Media Downloader Main Window](assets/main-window.png)
-
-*Main application interface with video metadata, quality selection badges, and live progress.*
-
 ![Media Downloader Compact Window](assets/compact-window.png)
 
 *Responsive scrollable interface on compact displays.*
 
----
+![Media Downloader Main Window](assets/main-window.png)
 
-## License
+*Main application interface with video metadata, quality selection badges, and live progress.*
 
-This project is licensed under the [MIT License](LICENSE).
+
