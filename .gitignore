@@ -3,26 +3,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual environments
+# Virtual environments & IDEs
 .venv/
 venv/
 ENV/
 env/
 .env
-
-# IDE & Editor settings
 .idea/
 .vscode/
-*.swp
-*.swo
 
 # Application runtime files
 *.log
 logs/*
 !logs/.gitkeep
 
-downloads/*
-!downloads/.gitkeep
+# Downloaded output media
+downloads/
 
 # Optional local FFmpeg binaries
 ffmpeg/

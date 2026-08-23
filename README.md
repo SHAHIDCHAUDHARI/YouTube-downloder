@@ -31,7 +31,7 @@ A clean desktop media downloader built with Python, CustomTkinter, yt-dlp, and F
 If you downloaded the project ZIP file or prefer not to use terminal commands:
 
 1. Extract the downloaded ZIP folder on your computer.
-2. Double-click **`requirements.py`** (or `setup.py`) to automatically install all dependencies and create required runtime folders (`downloads/` and `logs/`).
+2. Double-click **`setup.py`** to automatically install all dependencies and create required runtime folders.
 3. Double-click **`run.py`** to launch the Media Downloader application!
 
 ---
@@ -57,40 +57,6 @@ If you downloaded the project ZIP file or prefer not to use terminal commands:
 ![Media Downloader Compact Window](assets/compact-window.png)
 
 *Responsive scrollable interface on compact displays.*
-
----
-
-## Project Structure
-
-```text
-media-downloader/
-│
-├── run.py                 # Application entry point (Run this to start app)
-├── requirements.py        # One-click installer for dependencies & folders
-├── setup.py               # Setup helper entry point
-├── requirements.txt       # Python package requirements
-├── README.md              # Project documentation
-├── LICENSE                # MIT License
-├── .gitignore             # Git ignore rules
-│
-├── app/                   # Source code modules
-│   ├── gui.py             # Interface layout & event callbacks
-│   ├── downloader.py      # Background download worker & progress hooks
-│   ├── metadata.py        # yt-dlp metadata extraction & format parsing
-│   ├── models.py          # Data models
-│   ├── utils.py           # Formatting utilities & FFmpeg detector
-│   └── config.py          # Configuration & UI color palette
-│
-├── assets/                # App images & screenshots
-│   ├── main-window.png
-│   └── compact-window.png
-│
-├── downloads/             # Saved media output folder
-│   └── .gitkeep
-│
-└── logs/                  # Application log files
-    └── .gitkeep
-```
 
 ---
 
