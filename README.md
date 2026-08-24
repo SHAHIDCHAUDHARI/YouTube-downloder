@@ -1,4 +1,4 @@
-# Media Downloaders
+# Media Downloader
 
 A clean desktop media downloader built with Python, CustomTkinter, yt-dlp, and FFmpeg.
 
