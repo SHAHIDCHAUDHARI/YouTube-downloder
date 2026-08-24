@@ -278,6 +278,7 @@ def fetch_video_info(url: str, has_ffmpeg: bool) -> VideoInfo:
         "skip_download": True,
         "quiet": True,
         "no_warnings": True,
+        "no_color": True,
         "nocheckcertificate": True,
         "ignoreerrors": False,
     }
@@ -323,6 +324,8 @@ def fetch_video_info(url: str, has_ffmpeg: bool) -> VideoInfo:
 
     except yt_dlp.utils.DownloadError as e:
         err_msg = str(e)
+        import re
+        err_msg = re.sub(r'\x1b\[[0-9;]*m', '', err_msg)
         logger.error(f"yt-dlp DownloadError: {err_msg}")
         if "Sign in to confirm" in err_msg or "private" in err_msg.lower():
             raise ValueError("This video is private, age-restricted, or requires account authentication.")

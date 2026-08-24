@@ -1,10 +1,11 @@
 # Media Downloader
 
-A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, and FFmpeg. Supports downloading single videos, YouTube Shorts, Instagram Reels, and full YouTube Playlists in high quality.
+A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, curl-cffi, and FFmpeg. Supports downloading single videos, YouTube Shorts, Instagram Reels, and full YouTube Playlists in high quality.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![CustomTkinter](https://img.shields.io/badge/UI-CustomTkinter-blue)](https://github.com/TomSchimansky/CustomTkinter)
 [![yt-dlp](https://img.shields.io/badge/Engine-yt--dlp-red)](https://github.com/yt-dlp/yt-dlp)
+[![curl-cffi](https://img.shields.io/badge/Impersonation-curl--cffi-purple)](https://github.com/lexiforest/curl_cffi)
 [![FFmpeg](https://img.shields.io/badge/Media-FFmpeg-green)](https://ffmpeg.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)  
 
@@ -17,6 +18,8 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, and 
 - [Features](#features)
 - [Supported Platforms](#supported-platforms)
 - [Screenshots](#screenshots)
+- [Project Structure](#project-structure)
+
 ---
 
 ## Quick Start Guide
@@ -58,6 +61,7 @@ For developers and command line users:
 - **Full YouTube Playlist Support**: Download entire playlists with interactive video selection, item checkboxes, and per-video quality choices.
 - **1-Click Master Quality Selector**: Set desired resolution (`1080p Full HD`, `720p HD`, `480p`, `Audio MP3`) across all playlist videos at once.
 - **Dedicated Playlist Folders**: Automatically organizes downloads into named playlist subfolders (`downloads/Playlist Title/`) with chronological index prefixes (`01 - Intro.mp4`, `02 - Variables.mp4`).
+- **Browser TLS Impersonation**: Integrated `curl-cffi` engine for realistic HTTP/2 & TLS browser impersonation, smoothly bypassing Cloudflare anti-bot checks and HTTP 410 errors.
 - **Original Audio Preservation**: Intelligent audio track selection prioritizes native creator voice tracks (such as Hindi Original) over AI-generated dubbed audio.
 - **Universal Player Compatibility**: Automatically pairs H.264 Video + AAC Audio for smooth playback on Windows Media Player, QuickTime, mobile devices, and TVs.
 - **Visual Thumbnail Previews**: Real-time thumbnail previews for single videos and visual row thumbnails in the playlist table.
@@ -89,3 +93,24 @@ For developers and command line users:
 *Responsive scrollable layout for smaller display resolutions.*
 
 ---
+
+## Project Structure
+
+```text
+media-downloader/
+├── run.py                 # Main application entry point
+├── setup.py               # Automated setup & installer script
+├── requirements.txt       # Python package dependencies
+├── README.md              # Project documentation
+├── .gitignore             # Git ignore settings
+│
+├── app/                   # Source code
+│   ├── config.py          # App configuration & UI theme colors
+│   ├── downloader.py      # Multi-threaded download runner & progress hooks
+│   ├── gui.py             # CustomTkinter interface & views
+│   ├── metadata.py        # Metadata extraction & format normalization engine
+│   ├── models.py          # Data models (VideoInfo, PlaylistInfo, PlaylistItem)
+│   └── utils.py           # Helper utilities (FFmpeg locator, formatters)
+│
+└── assets/                # README screenshots & images
+```
