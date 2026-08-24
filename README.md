@@ -7,7 +7,8 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, curl
 [![yt-dlp](https://img.shields.io/badge/Engine-yt--dlp-red)](https://github.com/yt-dlp/yt-dlp)
 [![curl-cffi](https://img.shields.io/badge/Impersonation-curl--cffi-purple)](https://github.com/lexiforest/curl_cffi)
 [![FFmpeg](https://img.shields.io/badge/Media-FFmpeg-green)](https://ffmpeg.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)
+[![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)  
+
 [**Installation Steps**](#quick-start-guide)
 
 ---
@@ -23,7 +24,7 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, curl
 
 ## Quick Start Guide
 
-### Method 2: Double-Click Setup (Recommended / Easy Setup)
+### Method 1: Double-Click Setup (Recommended / Easy Setup)
 
 Recommended for most users and beginners downloading the ZIP release:
 
@@ -33,7 +34,7 @@ Recommended for most users and beginners downloading the ZIP release:
 
 ---
 
-### Method 1: Command Line (Advanced / Developers)
+### Method 2: Command Line (Advanced / Developers)
 
 For developers and command line users:
 
