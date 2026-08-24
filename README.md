@@ -6,7 +6,8 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, and 
 [![CustomTkinter](https://img.shields.io/badge/UI-CustomTkinter-blue)](https://github.com/TomSchimansky/CustomTkinter)
 [![yt-dlp](https://img.shields.io/badge/Engine-yt--dlp-red)](https://github.com/yt-dlp/yt-dlp)
 [![FFmpeg](https://img.shields.io/badge/Media-FFmpeg-green)](https://ffmpeg.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)
+[![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)  
+
 [**Installation Steps**](#quick-start-guide)
 
 ---
