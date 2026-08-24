@@ -23,7 +23,7 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, and 
 
 ## Quick Start Guide
 
-### Method 2: Double-Click Setup (Recommended / Easy Setup)
+### Method 1: Double-Click Setup (Recommended / Easy Setup)
 
 Recommended for most users and beginners downloading the ZIP release:
 
@@ -33,7 +33,7 @@ Recommended for most users and beginners downloading the ZIP release:
 
 ---
 
-### Method 1: Command Line (Advanced / Developers)
+### Method 2: Command Line (Advanced / Developers)
 
 For developers and command line users:
 
