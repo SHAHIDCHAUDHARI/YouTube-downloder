@@ -7,7 +7,7 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, curl
 [![yt-dlp](https://img.shields.io/badge/Engine-yt--dlp-red)](https://github.com/yt-dlp/yt-dlp)
 [![curl-cffi](https://img.shields.io/badge/Impersonation-curl--cffi-purple)](https://github.com/lexiforest/curl_cffi)
 [![FFmpeg](https://img.shields.io/badge/Media-FFmpeg-green)](https://ffmpeg.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)  
+[![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)
 
 [**Installation Steps**](#quick-start-guide)
 
@@ -18,7 +18,6 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, curl
 - [Features](#features)
 - [Supported Platforms](#supported-platforms)
 - [Screenshots](#screenshots)
-- [Project Structure](#project-structure)
 
 ---
 
@@ -91,26 +90,3 @@ For developers and command line users:
 ![Media Downloader Compact Window](assets/compact-window.png)
 
 *Responsive scrollable layout for smaller display resolutions.*
-
----
-
-## Project Structure
-
-```text
-media-downloader/
-├── run.py                 # Main application entry point
-├── setup.py               # Automated setup & installer script
-├── requirements.txt       # Python package dependencies
-├── README.md              # Project documentation
-├── .gitignore             # Git ignore settings
-│
-├── app/                   # Source code
-│   ├── config.py          # App configuration & UI theme colors
-│   ├── downloader.py      # Multi-threaded download runner & progress hooks
-│   ├── gui.py             # CustomTkinter interface & views
-│   ├── metadata.py        # Metadata extraction & format normalization engine
-│   ├── models.py          # Data models (VideoInfo, PlaylistInfo, PlaylistItem)
-│   └── utils.py           # Helper utilities (FFmpeg locator, formatters)
-│
-└── assets/                # README screenshots & images
-```
