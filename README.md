@@ -17,9 +17,6 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, and 
 - [Features](#features)
 - [Supported Platforms](#supported-platforms)
 - [Screenshots](#screenshots)
-- [Project Structure](#project-structure)
-- [How It Works](#how-it-works)
-
 ---
 
 ## Quick Start Guide
