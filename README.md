@@ -7,16 +7,53 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, and 
 [![yt-dlp](https://img.shields.io/badge/Engine-yt--dlp-red)](https://github.com/yt-dlp/yt-dlp)
 [![FFmpeg](https://img.shields.io/badge/Media-FFmpeg-green)](https://ffmpeg.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)
+[![How to Install](https://img.shields.io/badge/Quick%20Start-How%20to%20Install-success?style=for-the-badge&logo=rocket)](https://github.com/username/repository#quick-start-guide)
+
+[**👇 Click Here to Jump to Installation Steps (How to Install)**](#quick-start-guide)
 
 ---
 
 ## Table of Contents
+- [Quick Start Guide (How to Install)](#quick-start-guide)
 - [Features](#features)
 - [Supported Platforms](#supported-platforms)
 - [Screenshots](#screenshots)
-- [Quick Start Guide](#quick-start-guide)
 - [Project Structure](#project-structure)
 - [How It Works](#how-it-works)
+
+---
+
+## Quick Start Guide
+
+### Method 2: Double-Click Setup (Recommended / Easy Setup)
+
+Recommended for most users and beginners downloading the ZIP release:
+
+1. Extract the downloaded project ZIP file on your computer.
+2. Double-click **`setup.py`** to automatically install required packages and set up runtime folders.
+3. Double-click **`run.py`** to launch Media Downloader!
+
+---
+
+### Method 1: Command Line (Advanced / Developers)
+
+For developers and command line users:
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd <repository-folder>
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Launch the application**:
+   ```bash
+   python run.py
+   ```
 
 ---
 
@@ -54,36 +91,6 @@ A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, and 
 ![Media Downloader Compact Window](assets/compact-window.png)
 
 *Responsive scrollable layout for smaller display resolutions.*
-
----
-
-## Quick Start Guide
-
-### Option 1: Command Line
-
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd <repository-folder>
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Launch the application**:
-   ```bash
-   python run.py
-   ```
-
----
-
-### Option 2: Double-Click Setup (Beginner Friendly)
-
-1. Extract the downloaded project ZIP file.
-2. Double-click **`setup.py`** to automatically install required packages and set up runtime folders.
-3. Double-click **`run.py`** to launch Media Downloader.
 
 ---
 
