@@ -10,8 +10,8 @@ from typing import Callable, Optional
 import yt_dlp
 
 from app.config import DOWNLOADS_DIR
-from app.models import DownloadProgress, FormatOption, VideoInfo
-from app.utils import find_ffmpeg, format_bytes, format_eta, format_speed
+from app.models import DownloadProgress, FormatOption, VideoInfo, PlaylistInfo, PlaylistItem
+from app.utils import find_ffmpeg, format_bytes, format_eta, format_speed, sanitize_filename
 
 logger = logging.getLogger(__name__)
 
@@ -240,5 +240,161 @@ class Downloader:
             progress = DownloadProgress(
                 status="Finalizing output file...",
                 percentage=99.9,
+            )
+            on_progress(progress)
+
+    def download_playlist_async(
+        self,
+        playlist_info: PlaylistInfo,
+        on_progress: Callable[[DownloadProgress], None],
+        on_complete: Callable[[str], None],
+        on_error: Callable[[str], None],
+        on_item_status_change: Optional[Callable[[int, str], None]] = None,
+    ):
+        """Launch playlist download queue in a separate worker thread."""
+        if self._is_downloading:
+            logger.warning("Download already in progress.")
+            return
+
+        self._cancel_event.clear()
+        self._is_downloading = True
+
+        self._worker_thread = threading.Thread(
+            target=self._run_playlist_download,
+            args=(playlist_info, on_progress, on_complete, on_error, on_item_status_change),
+            daemon=True,
+        )
+        self._worker_thread.start()
+
+    def _run_playlist_download(
+        self,
+        playlist_info: PlaylistInfo,
+        on_progress: Callable[[DownloadProgress], None],
+        on_complete: Callable[[str], None],
+        on_error: Callable[[str], None],
+        on_item_status_change: Optional[Callable[[int, str], None]] = None,
+    ):
+        ffmpeg_dir = find_ffmpeg()
+        selected_items = [item for item in playlist_info.items if item.is_selected]
+
+        if not selected_items:
+            self._is_downloading = False
+            on_error("No videos selected for playlist download.")
+            return
+
+        # Dedicated playlist folder: downloads/Playlist Title/
+        clean_folder_name = sanitize_filename(playlist_info.title)
+        playlist_dir = DOWNLOADS_DIR / clean_folder_name
+        playlist_dir.mkdir(parents=True, exist_ok=True)
+
+        total_selected = len(selected_items)
+        logger.info(f"Starting playlist download ({total_selected} videos) to folder: {playlist_dir}")
+
+        for idx, item in enumerate(selected_items, start=1):
+            if self._cancel_event.is_set():
+                logger.info("Playlist download cancelled.")
+                on_progress(DownloadProgress(status="Playlist download cancelled", is_cancelled=True))
+                self._is_downloading = False
+                return
+
+            if on_item_status_change:
+                on_item_status_change(item.index, "Downloading...")
+
+            on_progress(
+                DownloadProgress(
+                    status=f"Downloading Video {idx} of {total_selected}: {item.title[:28]}...",
+                    percentage=0.0,
+                    current_item_index=idx,
+                    total_items=total_selected,
+                )
+            )
+
+            selected_format = item.get_selected_format()
+            if not selected_format:
+                if on_item_status_change:
+                    on_item_status_change(item.index, "Skipped")
+                continue
+
+            format_spec = selected_format.format_id
+            if selected_format.requires_ffmpeg and selected_format.video_format_id and selected_format.audio_format_id:
+                format_spec = f"{selected_format.video_format_id}+{selected_format.audio_format_id}"
+
+            padded_index = f"{item.index:02d}"
+            clean_item_title = sanitize_filename(item.title)
+            out_template = str(playlist_dir / f"{padded_index} - {clean_item_title}.%(ext)s")
+
+            ydl_opts = {
+                "format": format_spec,
+                "outtmpl": out_template,
+                "quiet": True,
+                "no_warnings": True,
+                "nocheckcertificate": True,
+                "ignoreerrors": False,
+                "restrictfilenames": False,
+                "progress_hooks": [
+                    lambda d, item_idx=idx, t=item.title: self._playlist_item_progress_hook(d, item_idx, total_selected, t, on_progress)
+                ],
+            }
+
+            if ffmpeg_dir:
+                ydl_opts["ffmpeg_location"] = ffmpeg_dir
+
+            if selected_format.is_audio_only and selected_format.is_mp3_convert:
+                ydl_opts["postprocessors"] = [
+                    {
+                        "key": "FFmpegExtractAudio",
+                        "preferredcodec": "mp3",
+                        "preferredquality": "192",
+                    }
+                ]
+            elif selected_format.requires_ffmpeg:
+                ydl_opts["merge_output_format"] = "mp4"
+
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([item.url])
+
+                if on_item_status_change:
+                    on_item_status_change(item.index, "Completed ✓")
+            except Exception as e:
+                logger.error(f"Error downloading playlist item {item.index} ({item.title}): {e}")
+                if on_item_status_change:
+                    on_item_status_change(item.index, "Failed")
+
+        self._is_downloading = False
+        if not self._cancel_event.is_set():
+            on_complete(str(playlist_dir.resolve()))
+
+    def _playlist_item_progress_hook(
+        self,
+        d: dict,
+        current_idx: int,
+        total_items: int,
+        title: str,
+        on_progress: Callable[[DownloadProgress], None],
+    ):
+        if self._cancel_event.is_set():
+            raise yt_dlp.utils.DownloadCancelled("Playlist download cancelled by user.")
+
+        status_code = d.get("status")
+        if status_code == "downloading":
+            raw_downloaded = d.get("downloaded_bytes", 0)
+            raw_total = d.get("total_bytes") or d.get("total_bytes_estimate") or 0
+
+            speed = d.get("speed") or 0.0
+            eta = d.get("eta")
+
+            item_pct = (raw_downloaded / raw_total * 100.0) if raw_total > 0 else 0.0
+
+            progress = DownloadProgress(
+                status=f"Downloading Video {current_idx} of {total_items}: {title[:28]}...",
+                downloaded_bytes=raw_downloaded,
+                total_bytes=raw_total,
+                percentage=min(item_pct, 99.9),
+                speed_str=format_speed(speed),
+                eta_str=format_eta(eta),
+                filename=title,
+                current_item_index=current_idx,
+                total_items=total_items,
             )
             on_progress(progress)

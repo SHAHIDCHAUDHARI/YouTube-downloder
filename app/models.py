@@ -51,6 +51,46 @@ class VideoInfo:
 
 
 @dataclass
+class PlaylistItem:
+    """Represents a single video item inside a playlist."""
+    index: int
+    url: str
+    id: str
+    title: str
+    uploader: str = "Unknown Channel"
+    duration: Optional[int] = 0
+    thumbnail_url: Optional[str] = None
+    formats: List[FormatOption] = field(default_factory=list)
+    selected_format_index: int = 0
+    is_selected: bool = True
+    status: str = "Pending"
+
+    def get_selected_format(self) -> Optional[FormatOption]:
+        if self.formats and 0 <= self.selected_format_index < len(self.formats):
+            return self.formats[self.selected_format_index]
+        return self.formats[0] if self.formats else None
+
+
+@dataclass
+class PlaylistInfo:
+    """Represents metadata for a fetched YouTube playlist."""
+    url: str
+    id: str
+    title: str
+    uploader: str = "Unknown Channel"
+    thumbnail_url: Optional[str] = None
+    items: List[PlaylistItem] = field(default_factory=list)
+
+    @property
+    def total_count(self) -> int:
+        return len(self.items)
+
+    @property
+    def selected_count(self) -> int:
+        return sum(1 for item in self.items if item.is_selected)
+
+
+@dataclass
 class DownloadProgress:
     """Represents real-time download progress and status updates."""
     status: str = "Preparing..."
@@ -63,3 +103,6 @@ class DownloadProgress:
     is_finished: bool = False
     is_cancelled: bool = False
     error_message: Optional[str] = None
+    current_item_index: int = 0
+    total_items: int = 0
+

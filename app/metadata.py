@@ -6,7 +6,7 @@ import logging
 from typing import Any, Dict, List, Optional
 import yt_dlp
 
-from app.models import FormatOption, VideoInfo
+from app.models import FormatOption, VideoInfo, PlaylistItem, PlaylistInfo
 from app.utils import format_bytes
 
 logger = logging.getLogger(__name__)
@@ -70,6 +70,26 @@ def _estimate_format_bytes(fmt: Optional[Dict[str, Any]], duration: Optional[int
     return 0
 
 
+def _audio_sort_key(fmt: Dict[str, Any]) -> tuple:
+    """Sorting key to prioritize Original Audio track (Hindi/Original) over AI-dubbed tracks."""
+    ext = (fmt.get("ext") or "").lower()
+    acodec = (fmt.get("acodec") or "").lower()
+    note = (fmt.get("format_note") or "").lower()
+    lang_pref = fmt.get("language_preference")
+    if lang_pref is None:
+        lang_pref = 0
+
+    is_m4a = 1 if (ext == "m4a" or "mp4a" in acodec or "aac" in acodec) else 0
+
+    is_dubbed = 1 if ("dub" in note or "dub" in (fmt.get("format_id") or "").lower()) else 0
+    is_original_note = 1 if ("original" in note or "default" in note) else 0
+
+    orig_score = lang_pref if lang_pref > 0 else (2 if is_original_note else (0 if is_dubbed else 1))
+    tbr = fmt.get("tbr") or 0.0
+
+    return (orig_score, is_m4a, tbr)
+
+
 def parse_and_normalize_formats(info_dict: Dict[str, Any], has_ffmpeg: bool, duration: Optional[int] = 0) -> List[FormatOption]:
     """
     Parse raw yt-dlp format dictionaries into a clean, normalized list of FormatOptions.
@@ -95,16 +115,9 @@ def parse_and_normalize_formats(info_dict: Dict[str, Any], has_ffmpeg: bool, dur
         if not format_id or "storyboard" in format_id or (vcodec == "none" and acodec == "none"):
             continue
 
-        # Audio-only format tracking (prefer m4a/aac for MP4 container compatibility)
+        # Audio-only format tracking (prefer Original Audio & m4a/aac for MP4 container compatibility)
         if vcodec == "none" and acodec != "none":
-            is_m4a = 1 if (fmt.get("ext") == "m4a" or "mp4a" in acodec.lower() or "aac" in acodec.lower()) else 0
-            best_m4a = 1 if (best_audio_format and (best_audio_format.get("ext") == "m4a" or "mp4a" in (best_audio_format.get("acodec") or "").lower() or "aac" in (best_audio_format.get("acodec") or "").lower())) else 0
-
-            if not best_audio_format:
-                best_audio_format = fmt
-            elif is_m4a > best_m4a:
-                best_audio_format = fmt
-            elif is_m4a == best_m4a and (fmt.get("tbr") or 0) > (best_audio_format.get("tbr") or 0):
+            if not best_audio_format or _audio_sort_key(fmt) > _audio_sort_key(best_audio_format):
                 best_audio_format = fmt
             continue
 
@@ -324,3 +337,147 @@ def fetch_video_info(url: str, has_ffmpeg: bool) -> VideoInfo:
         if isinstance(e, ValueError):
             raise e
         raise ValueError(f"Could not fetch video information: {str(e)}")
+
+
+def is_playlist_url(url: str) -> bool:
+    """Check whether a URL points to a playlist or playlist entries."""
+    clean = url.strip().lower()
+    return "list=" in clean or "/playlist" in clean
+
+
+def fetch_playlist_info(url: str, has_ffmpeg: bool) -> PlaylistInfo:
+    """
+    Fetch complete metadata for a playlist and all its entries.
+    Extracts entries with individual quality options and metadata.
+    """
+    clean_url = url.strip()
+    if not clean_url:
+        raise ValueError("Please enter a valid playlist URL.")
+
+    ydl_opts = {
+        "extract_flat": "in_playlist",
+        "skip_download": True,
+        "quiet": True,
+        "no_warnings": True,
+        "nocheckcertificate": True,
+        "ignoreerrors": True,
+    }
+
+    logger.info(f"Extracting playlist info for URL: {clean_url}")
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(clean_url, download=False)
+
+        if not info_dict:
+            raise ValueError("No playlist metadata could be extracted from this URL.")
+
+        # If yt-dlp returns a single video instead of playlist
+        if info_dict.get("_type") != "playlist" and "entries" not in info_dict:
+            single_info = fetch_video_info(clean_url, has_ffmpeg=has_ffmpeg)
+            item = PlaylistItem(
+                index=1,
+                url=single_info.url,
+                id=single_info.id,
+                title=single_info.title,
+                uploader=single_info.uploader,
+                duration=single_info.duration,
+                thumbnail_url=single_info.thumbnail_url,
+                formats=single_info.formats,
+                selected_format_index=single_info.default_format_index,
+                is_selected=True,
+            )
+            return PlaylistInfo(
+                url=clean_url,
+                id=single_info.id,
+                title=single_info.title,
+                uploader=single_info.uploader,
+                thumbnail_url=single_info.thumbnail_url,
+                items=[item],
+            )
+
+        playlist_title = info_dict.get("title") or info_dict.get("playlist_title") or "YouTube Playlist"
+        uploader = info_dict.get("uploader") or info_dict.get("channel") or info_dict.get("playlist_uploader") or "Unknown Channel"
+        playlist_id = info_dict.get("id", "")
+        entries = list(info_dict.get("entries") or [])
+
+        items: List[PlaylistItem] = []
+        playlist_thumb = None
+
+        for idx, entry in enumerate(entries, start=1):
+            if not entry:
+                continue
+
+            entry_id = entry.get("id") or ""
+            video_url = entry.get("url") or entry.get("webpage_url") or (f"https://www.youtube.com/watch?v={entry_id}" if entry_id else "")
+            title = entry.get("title") or f"Video {idx}"
+            duration = entry.get("duration")
+            entry_uploader = entry.get("uploader") or entry.get("channel") or uploader
+            thumb = entry.get("thumbnail") or (entry.get("thumbnails", [{}])[-1].get("url") if entry.get("thumbnails") else None)
+
+            if not playlist_thumb and thumb:
+                playlist_thumb = thumb
+
+            formats = []
+            try:
+                if "formats" in entry and entry["formats"]:
+                    formats = parse_and_normalize_formats(entry, has_ffmpeg=has_ffmpeg, duration=duration)
+                elif video_url:
+                    v_info = fetch_video_info(video_url, has_ffmpeg=has_ffmpeg)
+                    formats = v_info.formats
+                    title = v_info.title
+                    entry_uploader = v_info.uploader
+                    duration = v_info.duration
+                    if not thumb:
+                        thumb = v_info.thumbnail_url
+            except Exception as e:
+                logger.warning(f"Could not extract formats for item {idx} ({title}): {e}")
+
+            if not formats:
+                formats = [
+                    FormatOption(
+                        format_id="bestvideo+bestaudio/best",
+                        resolution_label="1080p Full HD",
+                        ext="mp4",
+                        display_text="1080p Full HD - MP4",
+                    )
+                ]
+
+            default_idx = select_default_format_index(formats)
+
+            item = PlaylistItem(
+                index=idx,
+                url=video_url,
+                id=entry_id,
+                title=title,
+                uploader=entry_uploader,
+                duration=duration,
+                thumbnail_url=thumb,
+                formats=formats,
+                selected_format_index=default_idx,
+                is_selected=True,
+                status="Pending",
+            )
+            items.append(item)
+
+        if not items:
+            raise ValueError("The playlist contains no downloadable video entries.")
+
+        return PlaylistInfo(
+            url=clean_url,
+            id=playlist_id,
+            title=playlist_title,
+            uploader=uploader,
+            thumbnail_url=playlist_thumb or (items[0].thumbnail_url if items else None),
+            items=items,
+        )
+
+    except yt_dlp.utils.DownloadError as e:
+        err_msg = str(e)
+        logger.error(f"yt-dlp Playlist DownloadError: {err_msg}")
+        raise ValueError(f"Could not fetch playlist metadata: {err_msg.split(';')[-1].strip()}")
+    except Exception as e:
+        logger.error(f"Unexpected error in playlist extraction: {e}", exc_info=True)
+        if isinstance(e, ValueError):
+            raise e
+        raise ValueError(f"Could not fetch playlist information: {str(e)}")
