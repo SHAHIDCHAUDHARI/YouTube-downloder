@@ -1,12 +1,41 @@
 # Media Downloader
 
-A clean desktop media downloader built with Python, CustomTkinter, yt-dlp, and FFmpeg.
+A modern desktop media downloader built with Python, CustomTkinter, yt-dlp, and FFmpeg. Supports downloading single videos, YouTube Shorts, Instagram Reels, and full YouTube Playlists in high quality.
+
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
+[![CustomTkinter](https://img.shields.io/badge/UI-CustomTkinter-blue)](https://github.com/TomSchimansky/CustomTkinter)
+[![yt-dlp](https://img.shields.io/badge/Engine-yt--dlp-red)](https://github.com/yt-dlp/yt-dlp)
+[![FFmpeg](https://img.shields.io/badge/Media-FFmpeg-green)](https://ffmpeg.org/)
+[![Platform](https://img.shields.io/badge/Platform-Windows-blue)](https://microsoft.com)
+[**Installation Steps**](#quick-start-guide)
 
 ---
 
-## Quick Start (How to Run)
+## Table of Contents
+- [Quick Start Guide (How to Install)](#quick-start-guide)
+- [Features](#features)
+- [Supported Platforms](#supported-platforms)
+- [Screenshots](#screenshots)
+- [Project Structure](#project-structure)
+- [How It Works](#how-it-works)
 
-### Method 1: Command Line
+---
+
+## Quick Start Guide
+
+### Method 2: Double-Click Setup (Recommended / Easy Setup)
+
+Recommended for most users and beginners downloading the ZIP release:
+
+1. Extract the downloaded project ZIP file on your computer.
+2. Double-click **`setup.py`** to automatically install required packages and set up runtime folders.
+3. Double-click **`run.py`** to launch Media Downloader!
+
+---
+
+### Method 1: Command Line (Advanced / Developers)
+
+For developers and command line users:
 
 1. **Clone the repository**:
    ```bash
@@ -14,53 +43,81 @@ A clean desktop media downloader built with Python, CustomTkinter, yt-dlp, and F
    cd <repository-folder>
    ```
 
-2. **Install requirements**:
+2. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Start the application**:
+3. **Launch the application**:
    ```bash
    python run.py
    ```
 
 ---
 
-### Method 2: Beginner / Double-Click Setup (No Command Line Required)
+## Features
 
-If you downloaded the project ZIP file or prefer not to use terminal commands:
-
-1. Extract the downloaded ZIP folder on your computer.
-2. Double-click **`setup.py`** to automatically install all dependencies and create required runtime folders.
-3. Double-click **`run.py`** to launch the Media Downloader application!
+- **Full YouTube Playlist Support**: Download entire playlists with interactive video selection, item checkboxes, and per-video quality choices.
+- **1-Click Master Quality Selector**: Set desired resolution (`1080p Full HD`, `720p HD`, `480p`, `Audio MP3`) across all playlist videos at once.
+- **Dedicated Playlist Folders**: Automatically organizes downloads into named playlist subfolders (`downloads/Playlist Title/`) with chronological index prefixes (`01 - Intro.mp4`, `02 - Variables.mp4`).
+- **Original Audio Preservation**: Intelligent audio track selection prioritizes native creator voice tracks (such as Hindi Original) over AI-generated dubbed audio.
+- **Universal Player Compatibility**: Automatically pairs H.264 Video + AAC Audio for smooth playback on Windows Media Player, QuickTime, mobile devices, and TVs.
+- **Visual Thumbnail Previews**: Real-time thumbnail previews for single videos and visual row thumbnails in the playlist table.
+- **Audio & MP3 Extraction**: Download standalone audio streams or convert directly to high-bitrate MP3 files.
+- **Per-Video Progress Bar**: Individual 0% to 100% progress tracking per video item with download speed and ETA.
+- **Responsive Dark Theme**: Built on CustomTkinter with a scrollable container for all screen resolutions.
 
 ---
 
-## Features
-
-- **Metadata Extraction**: Paste a video URL to view title, channel, duration, and thumbnail preview.
-- **Quality Options**: Select resolutions from 1080p Full HD down to 144p, with estimated file sizes.
-- **Audio & MP3 Download**: Download standalone audio files or convert audio directly to MP3.
-- **FFmpeg Integration**: Automatic detection and fallback to merge video + audio streams cleanly.
-- **Real-Time Progress**: Live MB downloaded, percentage, download speed, and ETA.
-- **Responsive Interface**: Scrollable main window ensures controls remain accessible at all window sizes.
-- **Local Downloads Folder**: Downloads are automatically saved to `downloads/` with an **Open Folder** button.
-
 ## Supported Platforms
 
-- **YouTube**: Long-form videos & YouTube Shorts
-- **Instagram**: Reels & video posts
+| Platform | Supported Content | Available Qualities |
+| :--- | :--- | :--- |
+| **YouTube** | Long-form Videos, YouTube Shorts, & Full Playlists | 1440p QHD, 1080p Full HD, 720p HD, 480p, 360p, 240p, M4A, MP3 |
+| **Instagram** | Reels & Video Posts | HD MP4 (H.264 + AAC) |
 
 ---
 
 ## Screenshots
 
-![Media Downloader Compact Window](assets/compact-window.png)
-
-*Responsive scrollable interface on compact displays.*
-
+### Main Application Interface
 ![Media Downloader Main Window](assets/main-window.png)
 
-*Main application interface with video metadata, quality selection badges, and live progress.*
+*Main application interface showing video metadata, quality selection badges, and live progress.*
 
+### Compact Responsive Layout
+![Media Downloader Compact Window](assets/compact-window.png)
 
+*Responsive scrollable layout for smaller display resolutions.*
+
+---
+
+## Project Structure
+
+```text
+media-downloader/
+├── run.py                 # Main application entry point
+├── setup.py               # Automated setup & installer script
+├── requirements.txt       # Python package dependencies
+├── README.md              # Project documentation
+├── .gitignore             # Git ignore settings
+│
+├── app/                   # Source code
+│   ├── config.py          # App configuration & UI theme colors
+│   ├── downloader.py      # Multi-threaded download runner & progress hooks
+│   ├── gui.py             # CustomTkinter interface & views
+│   ├── metadata.py        # Metadata extraction & format normalization engine
+│   ├── models.py          # Data models (VideoInfo, PlaylistInfo, PlaylistItem)
+│   └── utils.py           # Helper utilities (FFmpeg locator, formatters)
+│
+└── assets/                # README screenshots & images
+```
+
+---
+
+## How It Works
+
+1. **Metadata Engine**: Uses `yt-dlp` to extract media formats without downloading files.
+2. **Format Normalization**: Filters duplicate streams, prioritizes H.264 video + AAC audio, and sorts quality options.
+3. **Multi-Threading**: Runs downloads on background threads to keep the CustomTkinter GUI responsive.
+4. **Stream Merging**: Uses FFmpeg to combine video and audio streams into standard `.mp4` containers.

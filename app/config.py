@@ -21,21 +21,25 @@ MIN_HEIGHT = 620
 APPEARANCE_MODE = "Dark"
 COLOR_THEME = "blue"
 
-# UI Theme Color Palette
+# UI Theme Color Palette (Premium Dark Theme)
 COLORS = {
-    "bg_dark": "#121417",
-    "card_bg": "#1A1D24",
-    "card_border": "#2A2E39",
-    "accent_primary": "#1F6AA5",
-    "accent_hover": "#144D7A",
-    "accent_danger": "#C0392B",
-    "accent_danger_hover": "#962D22",
-    "text_main": "#F0F3F6",
-    "text_muted": "#8A94A6",
-    "status_success": "#2ECC71",
-    "status_warning": "#F39C12",
-    "status_error": "#E74C3C",
-    "status_info": "#3498DB",
+    "bg_dark": "#0D0F12",
+    "card_bg": "#151821",
+    "card_border": "#222736",
+    "input_bg": "#1A1D28",
+    "accent_primary": "#2563EB",
+    "accent_hover": "#1D4ED8",
+    "accent_danger": "#DC2626",
+    "accent_danger_hover": "#B91C1C",
+    "text_main": "#F9FAFB",
+    "text_muted": "#9CA3AF",
+    "text_dim": "#6B7280",
+    "status_success": "#10B981",
+    "status_warning": "#F59E0B",
+    "status_error": "#EF4444",
+    "status_info": "#3B82F6",
+    "pill_bg": "#1F2330",
+    "pill_hover": "#2B3042",
 }
 
 def setup_app_directories():
