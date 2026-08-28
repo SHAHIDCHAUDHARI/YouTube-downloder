@@ -261,7 +261,24 @@ class MediaDownloaderApp(ctk.CTk):
             text_color=COLORS["text_muted"],
             anchor="w",
         )
-        self.meta_row.pack(anchor="w")
+        self.meta_row.pack(anchor="w", pady=(0, 6))
+
+        self.download_thumb_btn = ctk.CTkButton(
+            details_frame,
+            text="Download Thumbnail",
+            height=34,
+            width=175,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="#1E293B",
+            hover_color="#334155",
+            border_color=COLORS["accent_primary"],
+            border_width=1,
+            text_color=COLORS["text_main"],
+            corner_radius=8,
+            state="disabled",
+            command=self._on_download_thumbnail_clicked,
+        )
+        self.download_thumb_btn.pack(anchor="w")
 
         # 3. Quality Selection Sub-section
         quality_frame = ctk.CTkFrame(self.info_card, fg_color="transparent")
@@ -356,7 +373,24 @@ class MediaDownloaderApp(ctk.CTk):
             text_color=COLORS["status_info"],
             anchor="w",
         )
-        self.playlist_meta_label.pack(anchor="w")
+        self.playlist_meta_label.pack(anchor="w", pady=(0, 6))
+
+        self.playlist_download_thumb_btn = ctk.CTkButton(
+            details_frame,
+            text="Download Playlist Cover",
+            height=32,
+            width=185,
+            font=ctk.CTkFont(size=11, weight="bold"),
+            fg_color="#1E293B",
+            hover_color="#334155",
+            border_color=COLORS["accent_primary"],
+            border_width=1,
+            text_color=COLORS["text_main"],
+            corner_radius=8,
+            state="disabled",
+            command=self._on_download_playlist_thumbnail_clicked,
+        )
+        self.playlist_download_thumb_btn.pack(anchor="w")
 
         # 2. Master Batch Quality & Controls Frame
         batch_bar = ctk.CTkFrame(self.playlist_card, fg_color=COLORS["bg_dark"], corner_radius=8)
@@ -741,6 +775,7 @@ class MediaDownloaderApp(ctk.CTk):
         default_opt = info.formats[default_idx]
         self._on_quality_selected(default_opt.display_text)
 
+        self.download_thumb_btn.configure(state="normal" if info.thumbnail_url else "disabled")
         self.download_btn.configure(state="normal")
         self.open_folder_btn.pack_forget()
 
@@ -859,6 +894,7 @@ class MediaDownloaderApp(ctk.CTk):
                 "thumb_label": item_thumb_label,
             }
 
+        self.playlist_download_thumb_btn.configure(state="normal" if playlist.thumbnail_url else "disabled")
         self.download_btn.configure(state="normal")
         self.open_folder_btn.pack_forget()
 
@@ -954,12 +990,52 @@ class MediaDownloaderApp(ctk.CTk):
         self.quality_dropdown.configure(values=["Fetch video to populate qualities"])
         self.quality_dropdown.set("Fetch video to populate qualities")
 
+        if hasattr(self, "download_thumb_btn"):
+            self.download_thumb_btn.configure(state="disabled")
+        if hasattr(self, "playlist_download_thumb_btn"):
+            self.playlist_download_thumb_btn.configure(state="disabled")
+
         self.download_btn.configure(state="disabled")
         self.cancel_btn.configure(state="disabled")
         self.open_folder_btn.pack_forget()
 
         self.progress_bar.set(0.0)
         self.progress_stats_label.configure(text="Ready to download")
+
+    def _on_download_thumbnail_clicked(self):
+        """Download high resolution single video thumbnail image."""
+        if not self._current_video_info or not self._current_video_info.thumbnail_url:
+            self._set_status("No thumbnail URL available.", mode="error")
+            return
+
+        self._set_status("Downloading high-resolution thumbnail image...", mode="working")
+        self._downloader.download_thumbnail_async(
+            title=self._current_video_info.title,
+            thumbnail_url=self._current_video_info.thumbnail_url,
+            video_id=self._current_video_info.id,
+            on_complete=lambda path: self.after(0, self._on_thumbnail_download_complete, path),
+            on_error=lambda err: self.after(0, self._on_download_error, err),
+        )
+
+    def _on_download_playlist_thumbnail_clicked(self):
+        """Download high resolution playlist cover thumbnail image."""
+        if not self._current_playlist_info or not self._current_playlist_info.thumbnail_url:
+            self._set_status("No playlist thumbnail available.", mode="error")
+            return
+
+        self._set_status("Downloading playlist cover image...", mode="working")
+        self._downloader.download_thumbnail_async(
+            title=f"{self._current_playlist_info.title}_Cover",
+            thumbnail_url=self._current_playlist_info.thumbnail_url,
+            on_complete=lambda path: self.after(0, self._on_thumbnail_download_complete, path),
+            on_error=lambda err: self.after(0, self._on_download_error, err),
+        )
+
+    def _on_thumbnail_download_complete(self, output_filepath: str):
+        """Handle successful thumbnail download completion."""
+        self._last_download_path = str(Path(output_filepath).parent)
+        self._set_status(f"✓ Thumbnail saved: {Path(output_filepath).name}", mode="success")
+        self.open_folder_btn.pack(side="left", padx=(0, 10))
 
     def _on_download_clicked(self):
         """Start asynchronous media download for single video or playlist."""

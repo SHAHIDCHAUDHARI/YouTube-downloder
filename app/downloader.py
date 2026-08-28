@@ -7,6 +7,7 @@ import logging
 import threading
 from pathlib import Path
 from typing import Callable, Optional
+import requests
 import yt_dlp
 
 from app.config import DOWNLOADS_DIR
@@ -410,3 +411,74 @@ class Downloader:
                 total_items=total_items,
             )
             on_progress(progress)
+
+    def download_thumbnail_async(
+        self,
+        title: str,
+        thumbnail_url: str,
+        video_id: str = "",
+        output_dir: Optional[Path] = None,
+        on_complete: Optional[Callable[[str], None]] = None,
+        on_error: Optional[Callable[[str], None]] = None,
+    ):
+        """Launch high resolution thumbnail download in a background worker thread."""
+        if not thumbnail_url and not video_id:
+            if on_error:
+                on_error("No thumbnail image available for this video.")
+            return
+
+        threading.Thread(
+            target=self._run_thumbnail_download,
+            args=(title, thumbnail_url, video_id, output_dir or DOWNLOADS_DIR, on_complete, on_error),
+            daemon=True,
+        ).start()
+
+    def _run_thumbnail_download(
+        self,
+        title: str,
+        thumbnail_url: str,
+        video_id: str,
+        target_dir: Path,
+        on_complete: Optional[Callable[[str], None]] = None,
+        on_error: Optional[Callable[[str], None]] = None,
+    ):
+        try:
+            target_dir.mkdir(parents=True, exist_ok=True)
+
+            best_url = thumbnail_url
+            if video_id:
+                candidates = [
+                    f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg",
+                    f"https://img.youtube.com/vi_webp/{video_id}/maxresdefault.webp",
+                    f"https://img.youtube.com/vi/{video_id}/sddefault.jpg",
+                ]
+                for candidate in candidates:
+                    try:
+                        res_head = requests.head(candidate, timeout=3)
+                        if res_head.status_code == 200 and int(res_head.headers.get("Content-Length", 0) or 0) > 5000:
+                            best_url = candidate
+                            break
+                    except Exception:
+                        pass
+
+            response = requests.get(best_url, timeout=10)
+            if response.status_code == 200:
+                clean_title = sanitize_filename(title)
+                ext = ".jpg"
+                if ".webp" in best_url.lower():
+                    ext = ".webp"
+                elif ".png" in best_url.lower():
+                    ext = ".png"
+
+                out_path = target_dir / f"{clean_title}_thumbnail{ext}"
+                out_path.write_bytes(response.content)
+
+                if on_complete:
+                    on_complete(str(out_path.resolve()))
+            else:
+                if on_error:
+                    on_error(f"HTTP Error {response.status_code} fetching thumbnail.")
+        except Exception as e:
+            logger.error(f"Error downloading thumbnail: {e}")
+            if on_error:
+                on_error(f"Could not download thumbnail image: {str(e)}")

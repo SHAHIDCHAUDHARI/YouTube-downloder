@@ -63,6 +63,7 @@ For developers and command line users:
 - **Browser TLS Impersonation**: Integrated `curl-cffi` engine for realistic HTTP/2 & TLS browser impersonation, smoothly bypassing Cloudflare anti-bot checks and HTTP 410 errors.
 - **Original Audio Preservation**: Intelligent audio track selection prioritizes native creator voice tracks (such as Hindi Original) over AI-generated dubbed audio.
 - **Universal Player Compatibility**: Automatically pairs H.264 Video + AAC Audio for smooth playback on Windows Media Player, QuickTime, mobile devices, and TVs.
+- **Standalone Thumbnail Download**: Dedicated 1-click button to download high-resolution video thumbnail images (`.jpg` / `.webp`) directly to `downloads/`.
 - **Visual Thumbnail Previews**: Real-time thumbnail previews for single videos and visual row thumbnails in the playlist table.
 - **Audio & MP3 Extraction**: Download standalone audio streams or convert directly to high-bitrate MP3 files.
 - **Per-Video Progress Bar**: Individual 0% to 100% progress tracking per video item with download speed and ETA.
