@@ -9,21 +9,28 @@ import shutil
 import logging
 import subprocess
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any, Union
 
 from app.config import BASE_DIR
 
 logger = logging.getLogger(__name__)
 
 
-def format_duration(seconds: Optional[int]) -> str:
-    """Format seconds into readable HH:MM:SS or MM:SS format."""
-    if not seconds or seconds < 0:
+def format_duration(seconds: Optional[Any]) -> str:
+    """Format seconds (int or float) into readable HH:MM:SS or MM:SS format."""
+    if seconds is None:
+        return "00:00"
+    try:
+        total_secs = int(round(float(seconds)))
+    except (ValueError, TypeError):
         return "00:00"
 
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    secs = seconds % 60
+    if total_secs < 0:
+        return "00:00"
+
+    hours = total_secs // 3600
+    minutes = (total_secs % 3600) // 60
+    secs = total_secs % 60
 
     if hours > 0:
         return f"{hours}:{minutes:02d}:{secs:02d}"

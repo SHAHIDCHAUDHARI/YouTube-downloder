@@ -88,9 +88,8 @@ class Downloader:
             "nocheckcertificate": True,
             "ignoreerrors": False,
             "restrictfilenames": False,
-            "concurrent_fragment_downloads": 8,
+            "concurrent_fragment_downloads": 4,
             "buffersize": 1024 * 1024,
-            "http_chunk_size": 10485760,
             "retries": 10,
             "fragment_retries": 10,
             "progress_hooks": [lambda d: self._progress_hook(d, on_progress)],
@@ -193,6 +192,11 @@ class Downloader:
             eta = d.get("eta")
 
             pct = (downloaded / total * 100.0) if total > 0 else 0.0
+            frag_index = d.get("fragment_index")
+            frag_count = d.get("fragment_count")
+            if (pct == 0.0 or total == 0) and frag_index is not None and frag_count:
+                pct = (frag_index / frag_count) * 100.0
+
             speed_str = format_speed(speed)
             eta_str = format_eta(eta)
             filename = Path(d.get("filename", "")).name
@@ -339,9 +343,8 @@ class Downloader:
                 "nocheckcertificate": True,
                 "ignoreerrors": False,
                 "restrictfilenames": False,
-                "concurrent_fragment_downloads": 8,
+                "concurrent_fragment_downloads": 4,
                 "buffersize": 1024 * 1024,
-                "http_chunk_size": 10485760,
                 "retries": 10,
                 "fragment_retries": 10,
                 "progress_hooks": [
@@ -398,6 +401,10 @@ class Downloader:
             eta = d.get("eta")
 
             item_pct = (raw_downloaded / raw_total * 100.0) if raw_total > 0 else 0.0
+            frag_index = d.get("fragment_index")
+            frag_count = d.get("fragment_count")
+            if (item_pct == 0.0 or raw_total == 0) and frag_index is not None and frag_count:
+                item_pct = (frag_index / frag_count) * 100.0
 
             progress = DownloadProgress(
                 status=f"Downloading Video {current_idx} of {total_items}: {title[:28]}...",
