@@ -38,21 +38,24 @@ def _get_resolution_label(height: int, fps: float = 0.0) -> str:
 def _format_sort_key(fmt: Dict[str, Any]) -> tuple:
     """Sorting key to pick the optimal format for a given resolution & fps group."""
     ext = fmt.get("ext", "").lower()
-    vcodec = fmt.get("vcodec", "").lower()
-    acodec = fmt.get("acodec", "").lower()
+    vcodec = (fmt.get("vcodec") or "").lower()
+    acodec = (fmt.get("acodec") or "").lower()
     filesize = fmt.get("filesize") or fmt.get("filesize_approx") or 0
-    tbr = fmt.get("tbr") or 0.0
+    tbr = fmt.get("tbr") or fmt.get("vbr") or 0.0
+    protocol = fmt.get("protocol", "").lower()
+    url = str(fmt.get("url", "")).lower()
 
-    # Progressive format (has both video & audio) bonus
-    is_progressive = 1 if (vcodec != "none" and acodec != "none") else 0
+    # Progressive format (has both video & audio or direct progressive mp4) bonus
+    is_not_hls = 1 if ("m3u8" not in protocol and not url.endswith(".m3u8") and "hls" not in fmt.get("format_id", "").lower()) else 0
+    is_progressive = 1 if ((vcodec != "none" and acodec != "none") or (ext == "mp4" and is_not_hls)) else 0
     # Preference for mp4 container
     is_mp4 = 1 if ext == "mp4" else 0
     # Preference for standard H.264 (avc1) over AV1/VP9 for universal Windows Media Player compatibility
-    is_h264 = 1 if "avc" in vcodec else 0
+    is_h264 = 1 if ("avc" in vcodec or is_not_hls) else 0
     is_common_codec = 1 if ("av01" in vcodec or "vp09" in vcodec) else 0
     has_explicit_size = 1 if filesize > 0 else 0
 
-    return (is_mp4, is_progressive, is_h264, has_explicit_size, is_common_codec, filesize or tbr)
+    return (is_mp4, is_progressive, is_not_hls, is_h264, has_explicit_size, is_common_codec, filesize or tbr)
 
 
 def _estimate_format_bytes(fmt: Optional[Dict[str, Any]], duration: Optional[int]) -> int:
@@ -105,14 +108,21 @@ def parse_and_normalize_formats(info_dict: Dict[str, Any], has_ffmpeg: bool, dur
     best_audio_format: Optional[Dict[str, Any]] = None
 
     for fmt in raw_formats:
-        vcodec = fmt.get("vcodec", "none")
-        acodec = fmt.get("acodec", "none")
+        vcodec = fmt.get("vcodec") or "none"
+        acodec = fmt.get("acodec") or "none"
         height = fmt.get("height")
         fps = fmt.get("fps") or 0.0
         format_id = fmt.get("format_id", "")
+        ext = fmt.get("ext", "").lower()
 
         # Skip storyboards or invalid items
-        if not format_id or "storyboard" in format_id or (vcodec == "none" and acodec == "none"):
+        if not format_id or "storyboard" in format_id:
+            continue
+
+        # If codecs are not explicitly populated (e.g. Pinterest direct MP4), treat as valid direct progressive video
+        is_direct_video = ext in ("mp4", "webm", "mkv", "mov") and height and height > 0
+
+        if (vcodec == "none" and acodec == "none") and not is_direct_video:
             continue
 
         # Audio-only format tracking (prefer Original Audio & m4a/aac for MP4 container compatibility)
@@ -154,7 +164,7 @@ def parse_and_normalize_formats(info_dict: Dict[str, Any], has_ffmpeg: bool, dur
         vcodec = best_fmt.get("vcodec") or ""
         acodec = best_fmt.get("acodec") or ""
 
-        is_progressive = (acodec != "none")
+        is_progressive = (acodec != "none") or (ext in ("mp4", "webm", "mkv", "mov") and "hls" not in format_id.lower() and not str(best_fmt.get("url", "")).endswith(".m3u8"))
         requires_ffmpeg = not is_progressive
 
         # Estimate video and audio stream sizes
@@ -295,6 +305,16 @@ def fetch_video_info(url: str, has_ffmpeg: bool) -> VideoInfo:
         # Extract primary metadata fields
         video_id = info_dict.get("id", "")
         title = info_dict.get("title", "Untitled Video")
+        description = info_dict.get("description") or ""
+
+        # If title is generic (e.g. "Pinterest video #12345" or "Untitled"), prefer first sentence of description
+        if (not title or "pinterest video #" in title.lower() or title.lower().startswith("untitled") or title.lower() == "video") and description:
+            first_line = description.strip().split("\n")[0].strip()
+            if len(first_line) > 80:
+                first_line = first_line[:77] + "..."
+            if first_line:
+                title = first_line
+
         uploader = info_dict.get("uploader") or info_dict.get("channel") or info_dict.get("uploader_id") or "Unknown Uploader"
         duration = info_dict.get("duration")
         view_count = info_dict.get("view_count")
